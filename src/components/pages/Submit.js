@@ -13,12 +13,13 @@ import {db} from '../../firebase';
 import {addDoc, collection, getDocs} from 'firebase/firestore';
 
 function Submit() {
-    const [details, setDetails] = useState({name: "", type: "", start: "", end: "", elapse: ""});
+    const [details, setDetails] = useState({name: "", type: "", start: "", end: ""});
+    var elapse;
     const [dates, setDates] = useState({startDate: "", startTime: "", endDate: "", endTime: ""})
     const [error, setError] = useState("");
 
     const [activities, setActivities] = useState([]);
-    const activCollection = collection(db, "activities");
+    const activitiesCollection = collection(db, "activities");
 
     const [show, setShow] = useState(false);
     const handleClose = () => {setShow(false); window.location.reload();};
@@ -26,22 +27,26 @@ function Submit() {
 
     useEffect(() => {
         const getActivities = async() => {
-            const data = await getDocs(activCollection);
+            const data = await getDocs(activitiesCollection);
             setActivities(data.docs.map((doc) => ({...doc.data(), id: doc.id})));
         };
 
         getActivities();
-    }, []);
+    }, [activities, activitiesCollection]);
     
     const addActivity = async () => {
-        await addDoc(activCollection, {name: details.name, type: details.type, start: details.start, end: details.end, elapse: details.elapse})
+        await addDoc(activitiesCollection, {name: details.name, type: details.type, start: details.start, end: details.end, elapse: elapse})
     }
 
     function calculateElapse() {
         var difference = details.end.getTime() - details.start.getTime();
         var inMinutes = Math.round(difference / 60000);
-        details.elapse = inMinutes;
+        elapse = inMinutes;
     }
+
+    useEffect(() => {
+        setDetails(details)
+    }, [details])
 
     function parseDates() {
         let time = dates.startTime;
@@ -86,7 +91,6 @@ function Submit() {
         return true;
     }
 
-
     const submitHandler = event => {
         event.preventDefault();
         if(validateFields()) {
@@ -106,46 +110,54 @@ function Submit() {
                         <Row>
                             <Form>
                                 {(error !== "") ? (<p class="text-danger">{error}</p>) : ""}
-                                <Form.Group class="row-padding-class" className="mb-3" controlId="formName">
-                                    <Form.Label>Activity Name</Form.Label>
-                                    <Col lg="3">
-                                        <Form.Control type="text" placeholder="e.g. Skiing" onChange={event => setDetails({...details, name: event.target.value})}/>
-                                    </Col>
-                                </Form.Group>
-                                <Form.Group class="row-padding-class" className="mb-3" controlId="formType">
-                                    <Form.Label>Type</Form.Label>
-                                    <Col lg="3">
-                                        <Form.Select aria-label="Default select example" onChange={event => setDetails({...details, type: event.target.value})}>
-                                            <option>Select a type</option>
-                                            <option value="Phone Call">Phone Call</option>
-                                            <option value="Email">Email</option>
-                                            <option value="Document">Document</option>
-                                            <option value="Appointment">Appointment</option>
-                                        </Form.Select>
-                                    </Col>
-                                </Form.Group>
-                                <Form.Group class="row-padding-class" className="mb-3" controlId="formStartDT">
-                                    <Form.Label>Start Date and Time</Form.Label>
-                                    <Row>
-                                        <Col sm lg="3">
-                                            <Form.Control type="date" name='start_date' onChange={event => setDates({...dates, startDate: event.target.value})}/>
+                                <div class="form">
+                                    <Form.Group>
+                                        <Form.Label>Activity Name</Form.Label>
+                                        <Col lg="3">
+                                            <Form.Control type="text" placeholder="e.g. Skiing" onChange={event => setDetails({...details, name: event.target.value})}/>
                                         </Col>
-                                        <Col sm lg="3">
-                                            <Form.Control type="time" name='start_time'onChange={event => setDates({...dates, startTime: event.target.value})}/>
+                                    </Form.Group>
+                                </div>
+                                <div class="form">
+                                    <Form.Group>
+                                        <Form.Label>Type</Form.Label>
+                                        <Col lg="3">
+                                            <Form.Select aria-label="Default select example" onChange={event => setDetails({...details, type: event.target.value})}>
+                                                <option>Select a type</option>
+                                                <option value="Phone Call">Phone Call</option>
+                                                <option value="Email">Email</option>
+                                                <option value="Document">Document</option>
+                                                <option value="Appointment">Appointment</option>
+                                            </Form.Select>
                                         </Col>
-                                    </Row>
-                                </Form.Group>
-                                <Form.Group class="row-padding-class" className="mb-3" controlId="formEndDT">
-                                    <Form.Label>End Date and Time</Form.Label>
-                                    <Row>
-                                        <Col sm lg="3">
-                                            <Form.Control type="date" name='end_date' onChange={event => setDates({...dates, endDate: event.target.value})}/>
-                                        </Col>
-                                        <Col sm lg="3">
-                                            <Form.Control type="time" name='end_time' onChange={event => setDates({...dates, endTime: event.target.value})}/>
-                                        </Col>
-                                    </Row>
-                                </Form.Group>
+                                    </Form.Group>
+                                </div>
+                                <div class="form">
+                                    <Form.Group>
+                                        <Form.Label>Start Date and Time</Form.Label>
+                                        <Row>
+                                            <Col sm lg="3">
+                                                <Form.Control type="date" name='start_date' onChange={event => setDates({...dates, startDate: event.target.value})}/>
+                                            </Col>
+                                            <Col sm lg="3">
+                                                <Form.Control type="time" name='start_time'onChange={event => setDates({...dates, startTime: event.target.value})}/>
+                                            </Col>
+                                        </Row>
+                                    </Form.Group>
+                                </div>
+                                <div class="form">
+                                    <Form.Group>
+                                        <Form.Label>End Date and Time</Form.Label>
+                                        <Row>
+                                            <Col sm lg="3">
+                                                <Form.Control type="date" name='end_date' onChange={event => setDates({...dates, endDate: event.target.value})}/>
+                                            </Col>
+                                            <Col sm lg="3">
+                                                <Form.Control type="time" name='end_time' onChange={event => setDates({...dates, endTime: event.target.value})}/>
+                                            </Col>
+                                        </Row>
+                                    </Form.Group>
+                                </div>
                                 <div class="button-container">
                                     <Button variant="primary" type="submit" onClick={submitHandler}>
                                         Submit
@@ -158,13 +170,13 @@ function Submit() {
             </div>
             <Modal show={show} onHide={handleClose}>
                 <Modal.Header closeButton>
-                <Modal.Title>Success</Modal.Title>
+                    <Modal.Title>Success</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>{details.name} has been added. You can now see it in <Link to="/">activities</Link>.</Modal.Body>
                 <Modal.Footer>
-                <Button variant="primary" onClick={handleClose}>
-                    OK
-                </Button>
+                    <Button variant="primary" onClick={handleClose}>
+                        OK
+                    </Button>
                 </Modal.Footer>
             </Modal>
         </div>

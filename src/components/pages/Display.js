@@ -1,26 +1,25 @@
 import "./Display.css";
 import {useState, useEffect} from 'react';
 import {db} from '../../firebase';
-import {collection, getDocs, deleteDoc, doc, arrayRemove} from 'firebase/firestore';
+import {collection, getDocs, deleteDoc, doc} from 'firebase/firestore';
 import Table from 'react-bootstrap/Table';
 import Form from 'react-bootstrap/Form';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
-import Container from 'react-bootstrap/Container';
 import Button from 'react-bootstrap/Button';
 
-function Display() {
+import convertToDHM from "../modules/convertToDHM";
+import parseDates from "../modules/parseDates";
 
+function Display() {
     const [activities, setActivities] = useState([]);
     const [original, setOriginal] = useState([]);
     const activitiesCollection = collection(db, "activities");
 
     const [dateFilter, setDateFilter] = useState({startDate: "", startTime: "", endDate: "", endTime: ""});
-
     const [sortType, setSortType] = useState({type: ""});
 
     const [error, setError] = useState("");
-
 
     const getActivities = async() => {
         const data = await getDocs(activitiesCollection);
@@ -45,33 +44,8 @@ function Display() {
         
     }
 
-    function validateDates(start, end) {
-        if(end > start) {
-            setError("");
-            return true;
-        }
-
-        if(end - start === 0) {
-            setError("");
-            return true;
-        }
-
-        setError("*Please ensure your input end date & time is after start end & time.");
-        return false;
-    }
-
-    function parseDates(inputTime, inputDate) {
-        if(inputDate !== "") {
-            let date = new Date(inputDate); 
-            let time = inputTime;
-            
-            return new Date(Date.parse(date.toDateString() + ' ' + time));
-        }
-        return;
-    }
-
-    const checkMapPossible = (start, end) => {
-        if(typeof end !== "undefined" && typeof start !== "undefined") {
+    function checkMapPossible(start, end) {
+        if(end !== false && start !== false) {
             if(!validateDates(start, end)) {
                 return false;
             }
@@ -79,7 +53,49 @@ function Display() {
         return true;
     }
 
-    const filterDates = (start, end) => {
+    function validateDates(start, end) {
+        if(end > start || end - start === 0) {
+            setError("");
+            return true;
+        }
+        setError("*Please ensure your input end date & time is after start end & time.");
+        return false;
+    }
+
+    function sortTable(activities, sort) {
+        if(sort === "name") {
+            activities.sort(function(a,b) {
+                let key1 = a.name.toLowerCase();
+                let key2 = b.name.toLowerCase();
+    
+                return (key1 < key2) ? -1 : 1;
+            });
+        } else if(sort === "start"){
+            activities.sort(function(a,b) {
+                let key1 = a.start;
+                let key2 = b.start;
+    
+                return (key1 < key2) ? -1 : 1;
+            });
+        } else if(sort === "end"){
+            activities.sort(function(a,b) {
+                let key1 = a.end;
+                let key2 = b.end;
+    
+                return (key1 < key2) ? -1 : 1;
+            });
+        } else if(sort === "elapse") {
+            activities.sort(function(a,b) {
+                let key1 = a.elapse;
+                let key2 = b.elapse;
+    
+                return (key1 < key2) ? -1 : 1;
+            });
+        }
+        return activities;
+    }
+
+    function filterDates(start, end) {
         const filteredActivities = original.filter((row) => {
             let filterPass = true
             const startDate = new Date(row.start.toDate())
@@ -97,29 +113,6 @@ function Display() {
         return filteredActivities;
     }
 
-    const toHoursMinutes = (mins) => {
-        let minutes = mins % 60;
-        let hours = Math.floor(mins/60);
-        let days = Math.floor(hours/24);
-
-        let convertedStr = "";
-
-        if(days > 0) {
-            convertedStr = convertedStr + days + " Day(s) "
-            hours = hours % 24;
-        }
-
-        if(hours > 0) {
-            convertedStr = convertedStr + hours + " Hour(s) "
-        }
-
-        if(minutes > 0) {
-            convertedStr = convertedStr + minutes + " Minute(s)"
-        }
-
-        return convertedStr;
-    }
-
     const deleteUser = async (id) => {
         let user = doc(db, "activities", id);
         await deleteDoc(user);
@@ -133,49 +126,10 @@ function Display() {
                 <td>{activity.type}</td>
                 <td>{activity.start.toDate().toDateString() + ",  " + activity.start.toDate().toLocaleTimeString('en-US', { hour12: true})} </td>
                 <td>{activity.end.toDate().toDateString() + ",  " + activity.end.toDate().toLocaleTimeString('en-US', { hour12: true})}</td>
-                <td>{toHoursMinutes(activity.elapse)}</td>
+                <td>{convertToDHM(activity.elapse)}</td>
                 <td class="text-center"><button type="button" class="btn btn-outline-danger btn-sm" onClick={() => {deleteUser(activity.id)}}>Delete</button></td>
             </tr>
-            
         );
-    }
-
-    function sortTable(activities, sort) {
-
-        if(sort === "name") {
-            activities.sort(function(a,b) {
-                let key1 = a.name.toLowerCase();
-                let key2 = b.name.toLowerCase();
-    
-                if(key1 < key2) return -1;
-                if(key1 > key2) return 1;
-            });
-        } else if(sort === "start"){
-            activities.sort(function(a,b) {
-                let key1 = a.start;
-                let key2 = b.start;
-
-                if(key1 < key2) return -1;
-                if(key1 > key2) return 1;
-            });
-        } else if(sort === "end"){
-            activities.sort(function(a,b) {
-                let key1 = a.end;
-                let key2 = b.end;
-
-                if(key1 < key2) return -1;
-                if(key1 > key2) return 1;
-            });
-        } else if(sort === "elapse") {
-            activities.sort(function(a,b) {
-                let key1 = a.elapse;
-                let key2 = b.elapse;
-
-                if(key1 < key2) return -1;
-                if(key1 > key2) return 1;
-            });
-        }
-        return activities;
     }
 
     return (
@@ -227,7 +181,6 @@ function Display() {
                             </Col>
                         </Row>
                         <Row>
-                        
                             <div class="col-1 search-container">
                                 <Button variant="outline-primary" type="submit" onClick={submitHandler}>
                                     Search

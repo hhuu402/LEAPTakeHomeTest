@@ -1,5 +1,5 @@
 .table-container {
-    padding: 60px;
+    padding: 20px 60px 60px 60px;
 }
 
 .selector-container {
@@ -12,4 +12,12 @@
 
 .title-container {
     padding-bottom: 15px;
+}
+
+.sort-container {
+    padding: 20px 50px 0px 0px;
+}
+
+.search-container {
+    padding-top: 2%;
 }
