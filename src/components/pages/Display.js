@@ -8,7 +8,9 @@ import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import Button from 'react-bootstrap/Button';
 
+//function that converts elapsed time into X Days Y hours Z minutes format
 import convertToDHM from "../modules/convertToDHM";
+//function that parses dates into date+time format
 import parseDates from "../modules/parseDates";
 
 function Display() {
@@ -34,8 +36,8 @@ function Display() {
     const submitHandler = event => {
         event.preventDefault();
 
-        let start = parseDates(dateFilter.startTime, dateFilter.startDate, "start");
-        let end = parseDates(dateFilter.endTime, dateFilter.endDate, "end");
+        let start = parseDates(dateFilter.startTime, dateFilter.startDate);
+        let end = parseDates(dateFilter.endTime, dateFilter.endDate);
 
         if(checkMapPossible(start, end)) {
             const displayDB = filterDates(start, end);
@@ -44,6 +46,7 @@ function Display() {
         
     }
 
+    //catches instances where start or end dates/times are invalid. returns true if they are valid
     function checkMapPossible(start, end) {
         if(end !== false && start !== false) {
             if(!validateDates(start, end)) {
@@ -53,6 +56,7 @@ function Display() {
         return true;
     }
 
+    //check if the end dates/time are before the start dates/time. returns true if it is not earlier than start date/time
     function validateDates(start, end) {
         if(end > start || end - start === 0) {
             setError("");
@@ -62,6 +66,7 @@ function Display() {
         return false;
     }
 
+    //sorts the current activities array based on user selection
     function sortTable(activities, sort) {
         if(sort === "name") {
             activities.sort(function(a,b) {
@@ -95,6 +100,7 @@ function Display() {
         return activities;
     }
 
+    //puts a filter on the current activities array
     function filterDates(start, end) {
         const filteredActivities = original.filter((row) => {
             let filterPass = true
@@ -113,12 +119,14 @@ function Display() {
         return filteredActivities;
     }
 
+    //deletes user from DB, refreshes so the latest update is immediately visible
     const deleteUser = async (id) => {
         let user = doc(db, "activities", id);
         await deleteDoc(user);
         window.location.reload();
     }
 
+    //displays activities onto table
     const renderActivity = (activity, index) => {
         return (
             <tr key={index}>

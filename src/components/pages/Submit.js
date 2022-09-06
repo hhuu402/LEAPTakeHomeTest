@@ -12,9 +12,13 @@ import {useState, useEffect} from 'react';
 import {db} from '../../firebase';
 import {addDoc, collection, getDocs} from 'firebase/firestore';
 
+//function that parses dates into date+time format
+import parseDates from "../modules/parseDates";
+
 function Submit() {
-    const [details, setDetails] = useState({name: "", type: "", start: "", end: ""});
-    var elapse;
+    const [details, setDetails] = useState({name: "", type: ""});
+    var elapse
+    var startDateTime = "", endDateTime = "";
     const [dates, setDates] = useState({startDate: "", startTime: "", endDate: "", endTime: ""})
     const [error, setError] = useState("");
 
@@ -35,37 +39,27 @@ function Submit() {
     }, [activities, activitiesCollection]);
     
     const addActivity = async () => {
-        await addDoc(activitiesCollection, {name: details.name, type: details.type, start: details.start, end: details.end, elapse: elapse})
+        await addDoc(activitiesCollection, {name: details.name, type: details.type, start: startDateTime, end: endDateTime, elapse: elapse})
     }
 
+    //calculate how many minutes is between activity start & end
     function calculateElapse() {
-        var difference = details.end.getTime() - details.start.getTime();
+        var difference = endDateTime.getTime() - startDateTime.getTime();
         var inMinutes = Math.round(difference / 60000);
         elapse = inMinutes;
     }
 
-    useEffect(() => {
-        setDetails(details)
-    }, [details])
+    //parses dates into date+time format; returns true if both fields are able to be parsed
+    function validateDates() {
+        startDateTime = parseDates( dates.startDate, dates.startTime);
+        endDateTime = parseDates(dates.endDate, dates.endTime);
 
-    function parseDates() {
-        let time = dates.startTime;
-        let date = new Date(dates.startDate);
-        let parsedDate = new Date(Date.parse(date.toDateString() + ' ' + time));
-
-        details.start = parsedDate;
-
-        time = dates.endTime;
-        date = new Date(dates.endDate);
-        parsedDate = new Date(Date.parse(date.toDateString() + ' ' + time));
-
-        details.end = parsedDate;
-
-        return(validateDateDiff())
+        return(validateDateDiff());
     }
 
+    //checks if activity end occurs before/ activity start or as activity starts
     function validateDateDiff() {
-        if(details.end > details.start) {
+        if(endDateTime > startDateTime) {
             setError("");
             return true;
         } else {
@@ -74,6 +68,7 @@ function Submit() {
         return false;
     }
 
+    //ensures all fields are filled out
     function validateFields() {
         let error = "*Activity requires a ";
         if(details.name === "") {
@@ -86,7 +81,6 @@ function Submit() {
             setError(error + "start date & time and an end date & time.");
             return false;
         }
-
         error = "";
         return true;
     }
@@ -94,7 +88,7 @@ function Submit() {
     const submitHandler = event => {
         event.preventDefault();
         if(validateFields()) {
-            if(parseDates()) {
+            if(validateDates()) {
                 calculateElapse();
                 addActivity(details);
                 handleShow();
