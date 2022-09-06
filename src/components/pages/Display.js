@@ -13,7 +13,7 @@ function Display() {
 
     const [activities, setActivities] = useState([]);
     const [original, setOriginal] = useState([]);
-    const activCollection = collection(db, "activities");
+    const activitiesCollection = collection(db, "activities");
 
     const [dateFilter, setDateFilter] = useState({startDate: "", startTime: "", endDate: "", endTime: ""});
 
@@ -23,7 +23,7 @@ function Display() {
 
 
     const getActivities = async() => {
-        const data = await getDocs(activCollection);
+        const data = await getDocs(activitiesCollection);
         setActivities(data.docs.map((doc) => ({...doc.data(), id: doc.id})));
         setOriginal(data.docs.map((doc) => ({...doc.data(), id: doc.id})));
     };
@@ -34,10 +34,15 @@ function Display() {
 
     const submitHandler = event => {
         event.preventDefault();
-        if(dateFilter.startDate !== "" || dateFilter.endDate !== "") {
-            const displayDB = filterDates(dateFilter);
+
+        let start = parseDates(dateFilter.startTime, dateFilter.startDate, "start");
+        let end = parseDates(dateFilter.endTime, dateFilter.endDate, "end");
+
+        if(checkMapPossible(start, end)) {
+            const displayDB = filterDates(start, end);
             setActivities(sortTable(displayDB, sortType.type));
         }
+        
     }
 
     function validateDates(start, end) {
@@ -65,16 +70,16 @@ function Display() {
         return;
     }
 
-    const filterDates = (dateFilter) => {
-        let start = parseDates(dateFilter.startTime, dateFilter.startDate, "start");
-        let end = parseDates(dateFilter.endTime, dateFilter.endDate, "end");
-
+    const checkMapPossible = (start, end) => {
         if(typeof end !== "undefined" && typeof start !== "undefined") {
             if(!validateDates(start, end)) {
-                return;
+                return false;
             }
         }
+        return true;
+    }
 
+    const filterDates = (start, end) => {
         const filteredActivities = original.filter((row) => {
             let filterPass = true
             const startDate = new Date(row.start.toDate())
@@ -89,9 +94,6 @@ function Display() {
             return filterPass
         });
 
-        //setActivities(sortTable(filteredActivities, sortType.type));
-        //setActivities(filteredActivities);
-        console.log(filteredActivities)
         return filteredActivities;
     }
 
@@ -127,7 +129,6 @@ function Display() {
     const renderActivity = (activity, index) => {
         return (
             <tr key={index}>
-                <td>{index + 1}</td>
                 <td>{activity.name}</td>
                 <td>{activity.type}</td>
                 <td>{activity.start.toDate().toDateString() + ",  " + activity.start.toDate().toLocaleTimeString('en-US', { hour12: true})} </td>
@@ -140,6 +141,7 @@ function Display() {
     }
 
     function sortTable(activities, sort) {
+
         if(sort === "name") {
             activities.sort(function(a,b) {
                 let key1 = a.name.toLowerCase();
@@ -180,55 +182,59 @@ function Display() {
         <div>
             <div class="selector-container">
                 <div class="card">
-                    <Container>
-                        <div class="title-container">
-                            <h4>I only want to see activities from...</h4>
-                            <p class="text-secondary">Please note if input on time is left empty, time will be defaulted to 12:00am.</p>
+                    <div class="row">
+                        <div class="col-10">
+                            <div class="title-container">
+                                <h4>I only want to see activities from...</h4>
+                                <p class="text-secondary">Please note if input on time is left empty, time will be defaulted to 12:00am.</p>
+                            </div>
                         </div>
-                        <Form>
-                            <Row>
-                                {(error !== "") ? (<p class="text-danger">{error}</p>) : ""}
-                                <Col lg="5">
-                                    <Form.Label>Start Date and Time</Form.Label>
-                                    <Row>
-                                        <Col sm="6">
-                                            <Form.Control type="date" name='start_date' onChange={event => setDateFilter({...dateFilter, startDate: event.target.value})}/>
-                                        </Col>
-                                        <Col sm="5">
-                                            <Form.Control type="time" name='start_time' onChange={event => setDateFilter({...dateFilter, startTime: event.target.value})}/>
-                                        </Col>
-                                    </Row>
-                                </Col>
-                                <Col lg="5">
-                                    <Form.Label>End Date and Time</Form.Label>
-                                    <Row>
-                                        <Col sm="6">
-                                            <Form.Control type="date" name='end_date' onChange={event => setDateFilter({...dateFilter, endDate: event.target.value})}/>
-                                        </Col>
-                                        <Col sm="5">
-                                            <Form.Control type="time" name='end_time' onChange={event => setDateFilter({...dateFilter, endTime: event.target.value})}/>
-                                        </Col>
-                                    </Row>
-                                </Col>
-                            </Row>
-                            <Row>
-                                <Col md="2">
-                                    <Form.Select aria-label="Default select example" onChange={event => setSortType({...sortType, type: event.target.value})}>
-                                        <option>Sort by...</option>
-                                        <option value="name">Name</option>
-                                        <option value="start">Start Date</option>
-                                        <option value="end">End Date</option>
-                                        <option value="elapse">Elapsed</option>
-                                    </Form.Select>
-                                </Col>
-                                <Col>
-                                    <Button variant="primary" type="submit" onClick={submitHandler}>
-                                        Search
-                                    </Button>
-                                </Col>
-                            </Row>
-                        </Form>
-                    </Container>
+                    </div>
+                    <Form>
+                        <Row>
+                            {(error !== "") ? (<p class="text-danger">{error}</p>) : ""}
+                            <Col lg="5">
+                                <Form.Label>Start Date and Time</Form.Label>
+                                <Row>
+                                    <Col sm="6">
+                                        <Form.Control type="date" name='start_date' onChange={event => setDateFilter({...dateFilter, startDate: event.target.value})}/>
+                                    </Col>
+                                    <Col sm="5">
+                                        <Form.Control type="time" name='start_time' onChange={event => setDateFilter({...dateFilter, startTime: event.target.value})}/>
+                                    </Col>
+                                </Row>
+                            </Col>
+                            <Col lg="5">
+                                <Form.Label>End Date and Time</Form.Label>
+                                <Row>
+                                    <Col sm="6">
+                                        <Form.Control type="date" name='end_date' onChange={event => setDateFilter({...dateFilter, endDate: event.target.value})}/>
+                                    </Col>
+                                    <Col sm="5">
+                                        <Form.Control type="time" name='end_time' onChange={event => setDateFilter({...dateFilter, endTime: event.target.value})}/>
+                                    </Col>
+                                </Row>
+                            </Col>
+                            <Col lg="2">
+                                <Form.Label>Sort Option</Form.Label>
+                                <Form.Select aria-label="Default select example" onChange={event => setSortType({...sortType, type: event.target.value})}>
+                                    <option>Sort by...</option>
+                                    <option value="name">Name</option>
+                                    <option value="start">Start Date</option>
+                                    <option value="end">End Date</option>
+                                    <option value="elapse">Elapsed</option>
+                                </Form.Select>
+                            </Col>
+                        </Row>
+                        <Row>
+                        
+                            <div class="col-1 search-container">
+                                <Button variant="outline-primary" type="submit" onClick={submitHandler}>
+                                    Search
+                                </Button>
+                            </div>
+                        </Row>
+                    </Form>
                 </div>
             </div>
             <div class="row justify-content-md-center">
@@ -236,7 +242,6 @@ function Display() {
                     <Table bordered hover>
                         <thead>
                             <tr>
-                                <th class="text-center">#</th>
                                 <th class="text-center">Name</th>
                                 <th class="text-center">Type</th>
                                 <th class="text-center">Start Time</th>
