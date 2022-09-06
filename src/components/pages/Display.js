@@ -1,7 +1,7 @@
 import "./Display.css";
 import {useState, useEffect} from 'react';
 import {db} from '../../firebase';
-import {collection, getDocs, deleteDoc, doc} from 'firebase/firestore';
+import {collection, getDocs, deleteDoc, doc, arrayRemove} from 'firebase/firestore';
 import Table from 'react-bootstrap/Table';
 import Form from 'react-bootstrap/Form';
 import Row from 'react-bootstrap/Row';
@@ -16,6 +16,8 @@ function Display() {
     const activCollection = collection(db, "activities");
 
     const [dateFilter, setDateFilter] = useState({startDate: "", startTime: "", endDate: "", endTime: ""});
+
+    const [sortType, setSortType] = useState({type: ""});
 
     const [error, setError] = useState("");
 
@@ -33,7 +35,8 @@ function Display() {
     const submitHandler = event => {
         event.preventDefault();
         if(dateFilter.startDate !== "" || dateFilter.endDate !== "") {
-            filterDates(dateFilter);
+            const displayDB = filterDates(dateFilter);
+            setActivities(sortTable(displayDB, sortType.type));
         }
     }
 
@@ -63,12 +66,13 @@ function Display() {
     }
 
     const filterDates = (dateFilter) => {
-
         let start = parseDates(dateFilter.startTime, dateFilter.startDate, "start");
         let end = parseDates(dateFilter.endTime, dateFilter.endDate, "end");
 
-        if(!validateDates(start, end)) {
-            return;
+        if(typeof end !== "undefined" && typeof start !== "undefined") {
+            if(!validateDates(start, end)) {
+                return;
+            }
         }
 
         const filteredActivities = original.filter((row) => {
@@ -85,7 +89,10 @@ function Display() {
             return filterPass
         });
 
-        setActivities(filteredActivities);
+        //setActivities(sortTable(filteredActivities, sortType.type));
+        //setActivities(filteredActivities);
+        console.log(filteredActivities)
+        return filteredActivities;
     }
 
     const toHoursMinutes = (mins) => {
@@ -132,6 +139,43 @@ function Display() {
         );
     }
 
+    function sortTable(activities, sort) {
+        if(sort === "name") {
+            activities.sort(function(a,b) {
+                let key1 = a.name.toLowerCase();
+                let key2 = b.name.toLowerCase();
+    
+                if(key1 < key2) return -1;
+                if(key1 > key2) return 1;
+            });
+        } else if(sort === "start"){
+            activities.sort(function(a,b) {
+                let key1 = a.start;
+                let key2 = b.start;
+
+                if(key1 < key2) return -1;
+                if(key1 > key2) return 1;
+            });
+        } else if(sort === "end"){
+            activities.sort(function(a,b) {
+                let key1 = a.end;
+                let key2 = b.end;
+
+                if(key1 < key2) return -1;
+                if(key1 > key2) return 1;
+            });
+        } else if(sort === "elapse") {
+            activities.sort(function(a,b) {
+                let key1 = a.elapse;
+                let key2 = b.elapse;
+
+                if(key1 < key2) return -1;
+                if(key1 > key2) return 1;
+            });
+        }
+        return activities;
+    }
+
     return (
         <div>
             <div class="selector-container">
@@ -165,6 +209,17 @@ function Display() {
                                             <Form.Control type="time" name='end_time' onChange={event => setDateFilter({...dateFilter, endTime: event.target.value})}/>
                                         </Col>
                                     </Row>
+                                </Col>
+                            </Row>
+                            <Row>
+                                <Col md="2">
+                                    <Form.Select aria-label="Default select example" onChange={event => setSortType({...sortType, type: event.target.value})}>
+                                        <option>Sort by...</option>
+                                        <option value="name">Name</option>
+                                        <option value="start">Start Date</option>
+                                        <option value="end">End Date</option>
+                                        <option value="elapse">Elapsed</option>
+                                    </Form.Select>
                                 </Col>
                                 <Col>
                                     <Button variant="primary" type="submit" onClick={submitHandler}>
