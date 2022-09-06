@@ -9,7 +9,17 @@ Change directory into the new folder and type
 
 $ npm install
 
-This project will also require react-router-dom, react-bootstrap, jquery,firebase to be installed using npm in the project directory.
+This project will also require
+
+- react-router-dom
+
+- react-bootstrap
+
+- jquery
+
+- firebase
+
+to be installed using npm in the project directory.
 
 To run the React project:
 
