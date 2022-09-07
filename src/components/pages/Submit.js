@@ -20,11 +20,8 @@ function Submit() {
     var startDateTime = "", endDateTime = "";
 
     const [details, setDetails] = useState({name: "", type: ""});
-    const [dates, setDates] = useState({startDate: "", startTime: "", endDate: "", endTime: ""})
+    const [dates, setDates] = useState({startDate: "", startTime: "", endDate: "", endTime: "", defaultEndDate: "", defaultEndTime: ""})
     const [error, setError] = useState("");
-
-    var defaultStartDate = dates.startDate;
-    var defaultStartTime = dates.startTime;
 
     const [activities, setActivities] = useState([]);
     const activitiesCollection = collection(db, "activities");
@@ -91,6 +88,9 @@ function Submit() {
     }
 
     const submitHandler = event => {
+
+        console.log(dates)
+
         event.preventDefault();
         if(validateFields()) {
             if(validateDates()) {
@@ -136,10 +136,23 @@ function Submit() {
                                         <Form.Label>Start Date and Time</Form.Label>
                                         <Row>
                                             <Col sm lg="3">
-                                                <Form.Control type="date" name='start_date' onChange={event => { setDates({...dates, startDate: event.target.value, endDate: event.target.value})}}/>
+                                                <Form.Control type="date" name='start_date' onChange={event => {
+                                                    if(dates.endDate === "") {
+                                                        setDates({...dates, startDate: event.target.value, endDate: event.target.value, defaultEndDate: event.target.value})
+                                                    } else {
+                                                        setDates({...dates, startDate: event.target.value})
+                                                    }
+                                                    }}
+                                                />
                                             </Col>
                                             <Col sm lg="3">
-                                                <Form.Control type="time" name='start_time' onChange={event => {setDates({...dates, startTime: event.target.value, endTime: event.target.value})}}/>
+                                                <Form.Control type="time" name='start_time' onChange={event => {
+                                                    if(dates.endTime === "") {
+                                                        setDates({...dates, startTime: event.target.value, endTime: event.target.value, defaultEndTime: event.target.value})
+                                                    } else {
+                                                        setDates({...dates, startTime: event.target.value})
+                                                    }}}
+                                                />
                                             </Col>
                                         </Row>
                                     </Form.Group>
@@ -149,10 +162,12 @@ function Submit() {
                                         <Form.Label>End Date and Time</Form.Label>
                                         <Row>
                                             <Col sm lg="3">
-                                                <Form.Control type="date" name='end_date' defaultValue={defaultStartDate} onChange={event => setDates({...dates, endDate: event.target.value})}/>
+                                                <Form.Control type="date" name='end_date' value={dates.defaultEndDate} onChange={event => {
+                                                setDates({...dates, endDate: event.target.value, defaultEndDate: event.target.value})
+                                                }}/>
                                             </Col>
                                             <Col sm lg="3">
-                                                <Form.Control type="time" name='end_time' defaultValue={defaultStartTime} onChange={event => setDates({...dates, endTime: event.target.value})}/>
+                                                <Form.Control type="time" name='end_time' value={dates.defaultEndTime} onChange={event => setDates({...dates, endTime: event.target.value, defaultEndTime: event.target.value})}/>
                                             </Col>
                                         </Row>
                                     </Form.Group>
