@@ -19,13 +19,10 @@ function Display() {
     const [original, setOriginal] = useState([]);
     const activitiesCollection = collection(db, "activities");
 
-    const [dateFilter, setDateFilter] = useState({startDate: "", startTime: "", endDate: "", endTime: ""});
+    const [dateFilter, setDateFilter] = useState({startDate: "", startTime: "", endDate: "", endTime: "", defaultEndDate: "", defaultEndTime: ""});
     const [sortType, setSortType] = useState({type: ""});
 
     const [error, setError] = useState("");
-
-    var defaultStartDate = dateFilter.startDate;
-    var defaultStartTime = dateFilter.startTime;
 
     const getActivities = async() => {
         const data = await getDocs(activitiesCollection);
@@ -38,6 +35,7 @@ function Display() {
     }, []);
 
     const submitHandler = event => {
+        console.log(dateFilter);
         event.preventDefault();
 
         var filterStart;
@@ -174,10 +172,22 @@ function Display() {
                                 <Form.Label>Start Date and Time</Form.Label>
                                 <Row>
                                     <Col sm="6">
-                                        <Form.Control type="date" name='start_date' onChange={event => setDateFilter({...dateFilter, startDate: event.target.value, endDate: event.target.value})}/>
+                                        <Form.Control type="date" name='start_date' onChange={event => {
+                                            if(dateFilter.endDate === "") {
+                                                setDateFilter({...dateFilter, startDate: event.target.value, endDate: event.target.value, defaultEndDate: event.target.value})
+                                            } else {
+                                                setDateFilter({...dateFilter, startDate: event.target.value})
+                                            }}}
+                                        />
                                     </Col>
                                     <Col sm="5">
-                                        <Form.Control type="time" name='start_time' onChange={event => setDateFilter({...dateFilter, startTime: event.target.value, endTime: event.target.value})}/>
+                                        <Form.Control type="time" name='start_time' onChange={event => {
+                                            if(dateFilter.endTime === "") {
+                                                setDateFilter({...dateFilter, startTime: event.target.value, endTime: event.target.value, defaultEndTime: event.target.value})
+                                            } else {
+                                                setDateFilter({...dateFilter, startTime: event.target.value})
+                                            }}}
+                                        />
                                     </Col>
                                 </Row>
                             </Col>
@@ -185,10 +195,10 @@ function Display() {
                                 <Form.Label>End Date and Time</Form.Label>
                                 <Row>
                                     <Col sm="6">
-                                        <Form.Control type="date" name='end_date' defaultValue={defaultStartDate} onChange={event => setDateFilter({...dateFilter, endDate: event.target.value})}/>
+                                        <Form.Control type="date" name='end_date' value={dateFilter.defaultEndDate} onChange={event => setDateFilter({...dateFilter, endDate: event.target.value, defaultEndDate: event.target.value})}/>
                                     </Col>
                                     <Col sm="5">
-                                        <Form.Control type="time" name='end_time' defaultValue={defaultStartTime} onChange={event => setDateFilter({...dateFilter, endTime: event.target.value})}/>
+                                        <Form.Control type="time" name='end_time' value={dateFilter.defaultEndTime} onChange={event => setDateFilter({...dateFilter, endTime: event.target.value, defaultEndTime: event.target.value})}/>
                                     </Col>
                                 </Row>
                             </Col>
