@@ -19,11 +19,13 @@ function Display() {
     const [original, setOriginal] = useState([]);
     const activitiesCollection = collection(db, "activities");
 
-    const [dateFilter, setDateFilter] = useState({startDate: "", startTime: defaultTime, endDate: "", endTime: defaultTime});
+    const [dateFilter, setDateFilter] = useState({startDate: "", startTime: "", endDate: "", endTime: ""});
     const [sortType, setSortType] = useState({type: ""});
 
     const [error, setError] = useState("");
 
+    var defaultStartDate = dateFilter.startDate;
+    var defaultStartTime = dateFilter.startTime;
 
     const getActivities = async() => {
         const data = await getDocs(activitiesCollection);
@@ -38,8 +40,19 @@ function Display() {
     const submitHandler = event => {
         event.preventDefault();
 
-        let filterStart = parseDates(dateFilter.startTime, dateFilter.startDate);
-        let filterEnd = parseDates(dateFilter.endTime, dateFilter.endDate);
+        var filterStart;
+        if(dateFilter.startTime !== "") {
+            filterStart = parseDates(dateFilter.startTime, dateFilter.startDate);
+        } else {
+            filterStart = parseDates(defaultTime, dateFilter.startDate);
+        }
+
+        var filterEnd;
+        if(dateFilter.startTime !== "") {
+            filterEnd = parseDates(dateFilter.endTime, dateFilter.endDate);
+        } else {
+            filterEnd = parseDates(defaultTime, dateFilter.endDate);
+        }
 
         if(checkMapPossible(filterStart, filterEnd)) {
             const displayDB = filterDates(filterStart, filterEnd);
@@ -106,6 +119,7 @@ function Display() {
     function filterDates(filterStart, filterEnd) {
         const filteredActivities = original.filter((row) => {
             let filterPass = true
+
             const activityStart = parseDates(row.start.toDate().toLocaleTimeString(), new Date(row.start.toDate()));
             const activityEnd = parseDates(row.end.toDate().toLocaleTimeString(), new Date(row.end.toDate()));
 
@@ -160,10 +174,10 @@ function Display() {
                                 <Form.Label>Start Date and Time</Form.Label>
                                 <Row>
                                     <Col sm="6">
-                                        <Form.Control type="date" name='start_date' onChange={event => setDateFilter({...dateFilter, startDate: event.target.value})}/>
+                                        <Form.Control type="date" name='start_date' onChange={event => setDateFilter({...dateFilter, startDate: event.target.value, endDate: event.target.value})}/>
                                     </Col>
                                     <Col sm="5">
-                                        <Form.Control type="time" name='start_time' defaultValue={defaultTime} onChange={event => setDateFilter({...dateFilter, startTime: event.target.value})}/>
+                                        <Form.Control type="time" name='start_time' onChange={event => setDateFilter({...dateFilter, startTime: event.target.value, endTime: event.target.value})}/>
                                     </Col>
                                 </Row>
                             </Col>
@@ -171,10 +185,10 @@ function Display() {
                                 <Form.Label>End Date and Time</Form.Label>
                                 <Row>
                                     <Col sm="6">
-                                        <Form.Control type="date" name='end_date' onChange={event => setDateFilter({...dateFilter, endDate: event.target.value})}/>
+                                        <Form.Control type="date" name='end_date' defaultValue={defaultStartDate} onChange={event => setDateFilter({...dateFilter, endDate: event.target.value})}/>
                                     </Col>
                                     <Col sm="5">
-                                        <Form.Control type="time" name='end_time' defaultValue={defaultTime} onChange={event => setDateFilter({...dateFilter, endTime: event.target.value})}/>
+                                        <Form.Control type="time" name='end_time' defaultValue={defaultStartTime} onChange={event => setDateFilter({...dateFilter, endTime: event.target.value})}/>
                                     </Col>
                                 </Row>
                             </Col>
