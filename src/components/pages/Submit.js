@@ -16,13 +16,15 @@ import {addDoc, collection, getDocs} from 'firebase/firestore';
 import parseDates from "../modules/parseDates";
 
 function Submit() {
-    var elapse
+    var elapse;
     var startDateTime = "", endDateTime = "";
-    var defaultTime = '00:00'
 
     const [details, setDetails] = useState({name: "", type: ""});
-    const [dates, setDates] = useState({startDate: "", startTime: defaultTime, endDate: "", endTime: defaultTime})
+    const [dates, setDates] = useState({startDate: "", startTime: "", endDate: "", endTime: ""})
     const [error, setError] = useState("");
+
+    var defaultStartDate = dates.startDate;
+    var defaultStartTime = dates.startTime;
 
     const [activities, setActivities] = useState([]);
     const activitiesCollection = collection(db, "activities");
@@ -134,10 +136,10 @@ function Submit() {
                                         <Form.Label>Start Date and Time</Form.Label>
                                         <Row>
                                             <Col sm lg="3">
-                                                <Form.Control type="date" name='start_date' onChange={event => setDates({...dates, startDate: event.target.value})}/>
+                                                <Form.Control type="date" name='start_date' onChange={event => { setDates({...dates, startDate: event.target.value, endDate: event.target.value})}}/>
                                             </Col>
                                             <Col sm lg="3">
-                                                <Form.Control type="time" name='start_time' defaultValue={defaultTime} onChange={event => setDates({...dates, startTime: event.target.value})}/>
+                                                <Form.Control type="time" name='start_time' onChange={event => {setDates({...dates, startTime: event.target.value, endTime: event.target.value})}}/>
                                             </Col>
                                         </Row>
                                     </Form.Group>
@@ -147,10 +149,10 @@ function Submit() {
                                         <Form.Label>End Date and Time</Form.Label>
                                         <Row>
                                             <Col sm lg="3">
-                                                <Form.Control type="date" name='end_date' onChange={event => setDates({...dates, endDate: event.target.value})}/>
+                                                <Form.Control type="date" name='end_date' defaultValue={defaultStartDate} onChange={event => setDates({...dates, endDate: event.target.value})}/>
                                             </Col>
                                             <Col sm lg="3">
-                                                <Form.Control type="time" name='end_time' defaultValue={defaultTime} onChange={event => setDates({...dates, endTime: event.target.value})}/>
+                                                <Form.Control type="time" name='end_time' defaultValue={defaultStartTime} onChange={event => setDates({...dates, endTime: event.target.value})}/>
                                             </Col>
                                         </Row>
                                     </Form.Group>
