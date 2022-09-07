@@ -51,8 +51,9 @@ function Submit() {
 
     //parses dates into date+time format; returns true if both fields are able to be parsed
     function validateDates() {
-        startDateTime = parseDates( dates.startDate, dates.startTime);
-        endDateTime = parseDates(dates.endDate, dates.endTime);
+
+        startDateTime = parseDates(dates.startTime, dates.startDate);
+        endDateTime = parseDates(dates.endTime,dates.endDate);
 
         return(validateDateDiff());
     }
