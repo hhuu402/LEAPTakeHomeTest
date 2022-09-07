@@ -14,16 +14,16 @@ import convertToDHM from "../modules/convertToDHM";
 import parseDates from "../modules/parseDates";
 
 function Display() {
+    var defaultTime = '00:00';
     const [activities, setActivities] = useState([]);
     const [original, setOriginal] = useState([]);
     const activitiesCollection = collection(db, "activities");
 
-    const [dateFilter, setDateFilter] = useState({startDate: "", startTime: "", endDate: "", endTime: ""});
+    const [dateFilter, setDateFilter] = useState({startDate: "", startTime: defaultTime, endDate: "", endTime: defaultTime});
     const [sortType, setSortType] = useState({type: ""});
 
     const [error, setError] = useState("");
 
-    var defaultTime = '00:00';
 
     const getActivities = async() => {
         const data = await getDocs(activitiesCollection);
@@ -38,20 +38,20 @@ function Display() {
     const submitHandler = event => {
         event.preventDefault();
 
-        let start = parseDates(dateFilter.startTime, dateFilter.startDate);
-        let end = parseDates(dateFilter.endTime, dateFilter.endDate);
+        let filterStart = parseDates(dateFilter.startTime, dateFilter.startDate);
+        let filterEnd = parseDates(dateFilter.endTime, dateFilter.endDate);
 
-        if(checkMapPossible(start, end)) {
-            const displayDB = filterDates(start, end);
+        if(checkMapPossible(filterStart, filterEnd)) {
+            const displayDB = filterDates(filterStart, filterEnd);
             setActivities(sortTable(displayDB, sortType.type));
         }
         
     }
 
     //catches instances where start or end dates/times are invalid. returns true if they are valid
-    function checkMapPossible(start, end) {
-        if(end !== false && start !== false) {
-            if(!validateDates(start, end)) {
+    function checkMapPossible(filterStart, filterEnd) {
+        if(filterEnd !== false && filterStart !== false) {
+            if(!validateDates(filterStart, filterEnd)) {
                 return false;
             }
         }
@@ -59,8 +59,8 @@ function Display() {
     }
 
     //check if the end dates/time are before the start dates/time. returns true if it is not earlier than start date/time
-    function validateDates(start, end) {
-        if(end > start || end - start === 0) {
+    function validateDates(filterStart, filterEnd) {
+        if(filterEnd > filterStart || filterEnd - filterStart === 0) {
             setError("");
             return true;
         }
@@ -103,21 +103,20 @@ function Display() {
     }
 
     //puts a filter on the current activities array
-    function filterDates(start, end) {
+    function filterDates(filterStart, filterEnd) {
         const filteredActivities = original.filter((row) => {
             let filterPass = true
-            const startDate = new Date(row.start.toDate())
-            const endDate = new Date(row.end.toDate())
+            const activityStart = parseDates(row.start.toDate().toLocaleTimeString(), new Date(row.start.toDate()));
+            const activityEnd = parseDates(row.end.toDate().toLocaleTimeString(), new Date(row.end.toDate()));
 
             if (dateFilter.startDate) {
-                filterPass = filterPass && (start <= startDate)
+                filterPass = filterPass && (filterStart <= activityStart)
             }
             if (dateFilter.endDate) {
-                filterPass = filterPass && (end >= endDate)
+                filterPass = filterPass && (filterEnd >= activityEnd)
             }
             return filterPass
         });
-
         return filteredActivities;
     }
 

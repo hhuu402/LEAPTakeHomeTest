@@ -16,11 +16,12 @@ import {addDoc, collection, getDocs} from 'firebase/firestore';
 import parseDates from "../modules/parseDates";
 
 function Submit() {
-    const [details, setDetails] = useState({name: "", type: ""});
     var elapse
     var startDateTime = "", endDateTime = "";
     var defaultTime = '00:00'
-    const [dates, setDates] = useState({startDate: "", startTime: "", endDate: "", endTime: ""})
+
+    const [details, setDetails] = useState({name: "", type: ""});
+    const [dates, setDates] = useState({startDate: "", startTime: defaultTime, endDate: "", endTime: defaultTime})
     const [error, setError] = useState("");
 
     const [activities, setActivities] = useState([]);
