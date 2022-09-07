@@ -23,6 +23,8 @@ function Display() {
 
     const [error, setError] = useState("");
 
+    var defaultTime = '00:00';
+
     const getActivities = async() => {
         const data = await getDocs(activitiesCollection);
         setActivities(data.docs.map((doc) => ({...doc.data(), id: doc.id})));
@@ -148,7 +150,7 @@ function Display() {
                         <div class="col-10">
                             <div class="title-container">
                                 <h4>I only want to see activities from...</h4>
-                                <p class="text-secondary">Please note if input on time is left empty, time will be defaulted to 12:00am.</p>
+                                <p class="text-secondary">Please note the default time will be 12:00AM.</p>
                             </div>
                         </div>
                     </div>
@@ -162,7 +164,7 @@ function Display() {
                                         <Form.Control type="date" name='start_date' onChange={event => setDateFilter({...dateFilter, startDate: event.target.value})}/>
                                     </Col>
                                     <Col sm="5">
-                                        <Form.Control type="time" name='start_time' onChange={event => setDateFilter({...dateFilter, startTime: event.target.value})}/>
+                                        <Form.Control type="time" name='start_time' defaultValue={defaultTime} onChange={event => setDateFilter({...dateFilter, startTime: event.target.value})}/>
                                     </Col>
                                 </Row>
                             </Col>
@@ -173,7 +175,7 @@ function Display() {
                                         <Form.Control type="date" name='end_date' onChange={event => setDateFilter({...dateFilter, endDate: event.target.value})}/>
                                     </Col>
                                     <Col sm="5">
-                                        <Form.Control type="time" name='end_time' onChange={event => setDateFilter({...dateFilter, endTime: event.target.value})}/>
+                                        <Form.Control type="time" name='end_time' defaultValue={defaultTime} onChange={event => setDateFilter({...dateFilter, endTime: event.target.value})}/>
                                     </Col>
                                 </Row>
                             </Col>
