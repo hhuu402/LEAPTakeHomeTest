@@ -15,8 +15,6 @@ This project will also require
 
 - react-bootstrap
 
-- jquery
-
 - firebase
 
 to be installed using npm in the project directory.
